@@ -1,0 +1,10 @@
+{
+  "name": "neck-pt",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Offline-first daily neck PT routine: timed holds, rep counting, voice cues and history.",
+  "scripts": {
+    "start": "node serve.js",
+    "test": "node --test test/*.test.js"
+  }
+}
