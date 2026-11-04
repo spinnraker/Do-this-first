@@ -975,7 +975,7 @@
         ${list.map((v) => row(v.name, v.name, v.lang)).join('')}
       </div>
       ${list.length ? '' : '<p class="hint">No voices found yet. Close this and open it again in a moment.</p>'}
-      <p class="hint" style="margin-top:20px">For a more natural voice, download one marked Enhanced or Premium in iPhone Settings → Accessibility → Spoken Content → Voices, then reopen DTF.</p>`;
+      <p class="hint" style="margin-top:20px">For a more natural voice, download one marked Enhanced or Premium in iPhone Settings → Accessibility → Read &amp; Speak → Voices (called Spoken Content on older iOS; or search Settings for “Voices”), then reopen DTF.</p>`;
   }
 
   // --- edit exercise ---
