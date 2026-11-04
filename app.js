@@ -185,15 +185,43 @@
 
   // ---------- cues: voice, tones, vibration, screen ----------
 
+  // Built-in novelty voices on Apple devices; not useful for exercise cues.
+  const NOVELTY = new Set(['Albert', 'Bad News', 'Bahh', 'Bells', 'Boing', 'Bubbles', 'Cellos', 'Good News', 'Jester',
+    'Organ', 'Superstar', 'Trinoids', 'Whisper', 'Wobble', 'Zarvox', 'Deranged', 'Hysterical', 'Pipe Organ']);
+  const RATES = [[0.8, 'Slower'], [0.95, 'Normal'], [1.1, 'Faster']];
+
+  /** Voices in the phone's language (falling back to English), best-sounding first. */
+  function voiceList() {
+    if (!('speechSynthesis' in window)) return [];
+    const all = speechSynthesis.getVoices().filter((v) => !NOVELTY.has(v.name.replace(/ \(.*\)$/, '')));
+    const lang = (navigator.language || 'en').slice(0, 2).toLowerCase();
+    let list = all.filter((v) => v.lang.toLowerCase().startsWith(lang));
+    if (!list.length) list = all.filter((v) => v.lang.toLowerCase().startsWith('en'));
+    const rank = (v) => (/premium/i.test(v.name) ? 0 : /enhanced/i.test(v.name) ? 1 : 2);
+    const seen = new Set();
+    return list
+      .filter((v) => !seen.has(v.name) && seen.add(v.name))
+      .sort((a, b) => rank(a) - rank(b) || a.name.localeCompare(b.name));
+  }
+
+  function findVoice(name) {
+    if (!name || !('speechSynthesis' in window)) return null;
+    return speechSynthesis.getVoices().find((v) => v.name === name) || null;
+  }
+
   const Cues = {
     ctx: null,
     voice: true,
+    voiceName: '',
+    rate: 0.95,
     tones: true,
     held: [], // iOS drops utterances that get garbage-collected mid-speech
 
     /** Must run inside a tap: iOS only allows audio and speech after a user gesture. */
     unlock(opts) {
       this.voice = opts.voice;
+      this.voiceName = opts.voiceName || '';
+      this.rate = opts.voiceRate || 0.95;
       this.tones = opts.tones;
       try {
         const AC = window.AudioContext || window.webkitAudioContext;
@@ -209,7 +237,9 @@
       if (!this.voice || !('speechSynthesis' in window)) return;
       if (interrupt) speechSynthesis.cancel();
       const u = new SpeechSynthesisUtterance(text);
-      u.rate = 0.95;
+      u.rate = this.rate;
+      const v = findVoice(this.voiceName);
+      if (v) { u.voice = v; u.lang = v.lang; }
       this.held.push(u);
       if (this.held.length > 20) this.held.shift();
       speechSynthesis.speak(u);
@@ -809,8 +839,12 @@
 
     html += `<h2 class="section-label">During a session</h2><div class="rules" style="margin-top:10px">
       ${onOff('voice', 'Voice cues', '“Hold… 3, 2, 1, relax”')}
+      ${s.voice ? `<button class="row-btn" data-action="voices"><b>Voice</b><span>${esc(s.voiceName ? s.voiceName : 'Phone default')} ›</span></button>` : ''}
       ${onOff('tones', 'Tones', 'Beeps on hold and relax')}
       </div>
+      ${s.voice ? `<div class="field" style="margin-top:20px"><span>Speaking speed</span>
+        <div class="seg">${RATES.map(([r, l]) => `<button data-action="rate" data-rate="${r}" aria-pressed="${Math.abs(s.voiceRate - r) < 0.01}">${l}</button>`).join('')}</div>
+      </div>` : ''}
       <div class="field" style="margin-top:20px"><span>Moving reps (no hold)</span>
         <div class="seg">
           <button data-action="pace" data-mode="auto" aria-pressed="${s.paceMode === 'auto'}">Auto-pace</button>
@@ -893,6 +927,7 @@
       edit: editSheet,
       checkin: checkinSheet,
       session: sessionSheet,
+      voices: voicesSheet,
     }[sheet.type]();
     sheetEl.innerHTML = `<div class="sheet-inner">${html}</div>`;
     sheetEl.querySelectorAll('textarea.line').forEach(fit);
@@ -921,6 +956,26 @@
       <ul class="points flags">${RED_FLAGS.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
       <div class="warn">These can be signs of pressure on the spinal cord. If symptoms are sudden or severe, go to urgent care or the emergency department.</div>
       <p class="lead" style="margin-top:20px">Sharp pain, or tingling and numbness that get worse during an exercise: stop that exercise.</p>`;
+  }
+
+  // --- voice picker ---
+
+  function voicesSheet() {
+    const cur = state.settings.voiceName;
+    const list = voiceList();
+    const row = (name, label, sub) => `<button class="row-btn" data-action="pick-voice" data-name="${esc(name)}" aria-pressed="${cur === name}">
+        <b>${esc(label)}${sub ? `<div class="hint" style="margin-top:2px">${esc(sub)}</div>` : ''}</b>
+        <span class="${cur === name ? 'on' : ''}">${cur === name ? '✓' : ''}</span>
+      </button>`;
+    return `<div class="sheet-top"><span></span><button class="done" data-action="close">Done</button></div>
+      <h1 id="sheet-title" tabindex="-1" class="detail-name">Voice</h1>
+      <p class="lead">Tap a voice to hear it.</p>
+      <div style="margin-top:20px;border-top:1px solid var(--line)">
+        ${row('', 'Phone default', '')}
+        ${list.map((v) => row(v.name, v.name, v.lang)).join('')}
+      </div>
+      ${list.length ? '' : '<p class="hint">No voices found yet. Close this and open it again in a moment.</p>'}
+      <p class="hint" style="margin-top:20px">For a more natural voice, download one marked Enhanced or Premium in iPhone Settings → Accessibility → Spoken Content → Voices, then reopen Neck PT.</p>`;
   }
 
   // --- edit exercise ---
@@ -1142,6 +1197,23 @@
         save();
         render();
         break;
+      case 'voices':
+        openSheet({ type: 'voices' });
+        break;
+      case 'pick-voice':
+        s.voiceName = el.dataset.name;
+        save();
+        Cues.unlock(s);
+        Cues.say('Hold. 3, 2, 1. Relax.', true);
+        renderSheet();
+        break;
+      case 'rate':
+        s.voiceRate = Number(el.dataset.rate);
+        save();
+        Cues.unlock(s);
+        Cues.say('Hold. 3, 2, 1. Relax.', true);
+        render();
+        break;
       case 'pace':
         s.paceMode = el.dataset.mode;
         save();
@@ -1347,6 +1419,14 @@
 
   if ('serviceWorker' in navigator && location.protocol.startsWith('http')) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // Voices load asynchronously in most browsers.
+  if ('speechSynthesis' in window) {
+    speechSynthesis.addEventListener('voiceschanged', () => {
+      if (sheet && sheet.type === 'voices') renderSheet();
+      else if (view === 'routine' && !R) render();
+    });
   }
 
   render();

@@ -77,6 +77,8 @@
     return {
       disclaimerAccepted: false,
       voice: true,
+      voiceName: '', // '' = the phone's default voice
+      voiceRate: 0.95,
       tones: true,
       paceMode: 'auto', // 'auto' | 'tap'
       paceSeconds: 4,
@@ -129,6 +131,8 @@
     const settings = {
       disclaimerAccepted: !!s.disclaimerAccepted,
       voice: s.voice !== false,
+      voiceName: str(s.voiceName).slice(0, 200),
+      voiceRate: Number.isFinite(Number(s.voiceRate)) ? Math.min(1.4, Math.max(0.6, Number(s.voiceRate))) : 0.95,
       tones: s.tones !== false,
       paceMode: s.paceMode === 'tap' ? 'tap' : 'auto',
       paceSeconds: int(s.paceSeconds, 2, 15, 4),

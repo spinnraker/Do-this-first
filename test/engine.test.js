@@ -159,3 +159,12 @@ test('pain series and skip counts', () => {
   const counts = E.skipCounts(sessions);
   assert.deepEqual(counts[0], { name: 'E1', skipped: 2, total: 3 });
 });
+
+test('voice settings are validated', () => {
+  const ok = E.normalize({ exercises: [], settings: { voiceName: 'Samantha (Enhanced)', voiceRate: 1.1 } }, '2026-11-04').state.settings;
+  assert.equal(ok.voiceName, 'Samantha (Enhanced)');
+  assert.equal(ok.voiceRate, 1.1);
+  const bad = E.normalize({ exercises: [], settings: { voiceName: 5, voiceRate: 'fast' } }, '2026-11-04').state.settings;
+  assert.equal(bad.voiceName, '');
+  assert.equal(bad.voiceRate, 0.95);
+});
