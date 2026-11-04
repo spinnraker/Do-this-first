@@ -1,6 +1,6 @@
-# Neck PT
+# DTF
 
-A daily neck routine for cervical spondylosis that runs the session for you: it reads out each exercise, times the holds, counts reps and sides, and keeps your history. Same look and setup as Habito: black and white, no account, works offline.
+DTF: a daily neck routine for cervical spondylosis that runs the session for you: it reads out each exercise, times the holds, counts reps and sides, and keeps your history. Same look and setup as Habito: black and white, no account, works offline.
 
 ## Use it
 

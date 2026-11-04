@@ -178,7 +178,7 @@
         save();
         render();
         toast('Backup restored');
-      }).catch(() => toast('That file isn’t a Neck PT backup'));
+      }).catch(() => toast('That file isn’t a DTF backup'));
     };
     input.click();
   }
@@ -863,7 +863,7 @@
       </div>
       ${s.reminderTimes.length < 2 ? '<button class="link" data-action="add-time">+ Add a second time</button>' : ''}
       <button class="btn block" data-action="calendar" style="margin-top:12px">Add to Calendar</button>
-      <p class="hint">Home-screen web apps can’t schedule their own alerts, so reminders go in your Calendar as a daily event with an alert. If you change the time, delete the old “Neck PT” event first.</p>`;
+      <p class="hint">Home-screen web apps can’t schedule their own alerts, so reminders go in your Calendar as a daily event with an alert. If you change the time, delete the old “DTF” event first.</p>`;
 
     html += `<h2 class="section-label">Program</h2><div style="margin-top:10px;border-top:1px solid var(--line)">
       <label class="row-time"><span>Start date</span><input type="date" value="${s.programStart}" data-field="programStart"></label></div>
@@ -942,7 +942,7 @@
   function disclaimerSheet() {
     const first = sheet.first;
     return `${first ? '' : '<div class="sheet-top"><span></span><button class="done" data-action="close">Done</button></div>'}
-      <div class="date" style="margin-top:${first ? 28 : 20}px">Neck PT</div>
+      <div class="date" style="margin-top:${first ? 28 : 20}px">DTF</div>
       <h1 id="sheet-title" tabindex="-1">Before you start</h1>
       <ul class="points">${DISCLAIMER.map((p) => `<li>${esc(p)}</li>`).join('')}</ul>
       <p class="lead">During a session, “Stop &amp; get seen” lists warning signs that need prompt medical attention.</p>
@@ -975,7 +975,7 @@
         ${list.map((v) => row(v.name, v.name, v.lang)).join('')}
       </div>
       ${list.length ? '' : '<p class="hint">No voices found yet. Close this and open it again in a moment.</p>'}
-      <p class="hint" style="margin-top:20px">For a more natural voice, download one marked Enhanced or Premium in iPhone Settings → Accessibility → Spoken Content → Voices, then reopen Neck PT.</p>`;
+      <p class="hint" style="margin-top:20px">For a more natural voice, download one marked Enhanced or Premium in iPhone Settings → Accessibility → Spoken Content → Voices, then reopen DTF.</p>`;
   }
 
   // --- edit exercise ---
@@ -1242,10 +1242,10 @@
         break;
       case 'csv':
         if (!state.sessions.length) { toast('No sessions yet'); return; }
-        shareFile(E.toCsv(state.sessions), `neck-pt-history-${today()}.csv`, 'text/csv', 'Neck PT history');
+        shareFile(E.toCsv(state.sessions), `dtf-history-${today()}.csv`, 'text/csv', 'DTF history');
         break;
       case 'backup':
-        shareFile(JSON.stringify(state, null, 2), `neck-pt-backup-${today()}.json`, 'application/json', 'Neck PT backup');
+        shareFile(JSON.stringify(state, null, 2), `dtf-backup-${today()}.json`, 'application/json', 'DTF backup');
         break;
       case 'import':
         importData();

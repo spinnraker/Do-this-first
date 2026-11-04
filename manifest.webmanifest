@@ -1,6 +1,6 @@
 {
-  "name": "Neck PT",
-  "short_name": "Neck PT",
+  "name": "DTF",
+  "short_name": "DTF",
   "description": "Your daily neck routine, timed.",
   "start_url": "./",
   "scope": "./",

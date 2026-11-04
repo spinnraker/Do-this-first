@@ -359,7 +359,7 @@
    */
   function toIcs(times, startKey) {
     const ymd = startKey.replace(/-/g, '');
-    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Neck PT//Reminders//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:Neck PT'];
+    const lines = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//DTF//Reminders//EN', 'CALSCALE:GREGORIAN', 'X-WR-CALNAME:DTF'];
     for (const t of times) {
       const [h, m] = t.split(':').map(Number);
       const end = h * 60 + m + 15;
@@ -372,12 +372,12 @@
         `DTSTART:${ymd}T${hhmm}`,
         `DTEND:${ymd}T${end >= 1440 ? hhmm : endHhmm}`,
         'RRULE:FREQ=DAILY',
-        'SUMMARY:Neck PT',
+        'SUMMARY:DTF · neck routine',
         'DESCRIPTION:Time for your neck routine. Gentle range only.',
         'TRANSP:TRANSPARENT',
         'BEGIN:VALARM',
         'ACTION:DISPLAY',
-        'DESCRIPTION:Neck PT',
+        'DESCRIPTION:DTF · neck routine',
         'TRIGGER:PT0M',
         'END:VALARM',
         'END:VEVENT',
