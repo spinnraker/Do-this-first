@@ -457,3 +457,12 @@ input[type="range"]::-moz-range-thumb { width: 28px; height: 28px; border-radius
 .sheet.session { z-index: 9; }
 .week-edit span.check { display: block; }
 .pain-head > span { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); }
+
+/* Multi-line text box styled like the single-line fields above. */
+.field textarea.line {
+  display: block; width: 100%; min-height: 0; margin-top: 0; resize: none; overflow: hidden;
+  font-size: 22px; line-height: 1.3; padding: 8px 0 10px;
+  border: 0; border-bottom: 1px solid var(--line); border-radius: 0;
+}
+.field textarea.line:focus { border-bottom-color: var(--fg); }
+.field textarea.line::placeholder { color: var(--muted); opacity: 1; }

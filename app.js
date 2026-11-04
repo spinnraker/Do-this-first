@@ -895,6 +895,13 @@
       session: sessionSheet,
     }[sheet.type]();
     sheetEl.innerHTML = `<div class="sheet-inner">${html}</div>`;
+    sheetEl.querySelectorAll('textarea.line').forEach(fit);
+  }
+
+  // One-line-looking text box that grows to show all of its text.
+  function fit(el) {
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
   }
 
   function disclaimerSheet() {
@@ -943,7 +950,7 @@
       </div>
       <h1 id="sheet-title" tabindex="-1" class="detail-name">${sheet.id ? 'Edit exercise' : 'New exercise'}</h1>
       <label class="field"><span>Name</span><input type="text" data-ed="name" value="${esc(d.name)}" placeholder="Chin tucks" maxlength="60" autocomplete="off"></label>
-      <label class="field"><span>Cue</span><input type="text" data-ed="cue" value="${esc(d.cue)}" placeholder="What to focus on" maxlength="200" autocomplete="off"></label>
+      <label class="field"><span>Cue</span><textarea class="line" rows="1" data-ed="cue" placeholder="What to focus on" maxlength="200">${esc(d.cue)}</textarea></label>
       <div class="field"><span>Type</span>${seg('ed-type', 'type', [['hold-reps', 'Hold reps'], ['hold-sets', 'Hold sets'], ['reps', 'Reps']])}</div>
       <div class="field"><span>Sides</span>${seg('ed-sides', 'sides', [['none', 'None'], ['alternating', 'Alternate'], ['each', 'Each side']])}</div>
       <div class="field"><span>${unit}${d.sides !== 'none' ? ' per side' : ''}</span>${stepper('reps', d.reps, unit.toLowerCase(), 1, 50)}</div>
@@ -1273,6 +1280,7 @@
     const t = ev.target;
     if (!sheet) return;
     if (t.dataset.ed) {
+      if (t.classList.contains('line')) fit(t);
       sheet.draft[t.dataset.ed] = t.value;
       const btn = sheetEl.querySelector('[data-action="save"]');
       if (btn) btn.disabled = !sheet.draft.name || !sheet.draft.name.trim();
@@ -1286,6 +1294,12 @@
   });
 
   sheetEl.addEventListener('keydown', (ev) => {
+    // The cue wraps but is a single paragraph: Return finishes editing instead of adding a line break.
+    if (ev.key === 'Enter' && ev.target.classList.contains('line')) {
+      ev.preventDefault();
+      ev.target.blur();
+      return;
+    }
     if (ev.key === 'Enter' && ev.target.dataset.ed && ev.target.tagName === 'INPUT' && sheet.type === 'edit') {
       ev.preventDefault();
       saveExercise();
