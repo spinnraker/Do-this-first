@@ -15,10 +15,10 @@ No dependencies and no build step. To put it on your iPhone, host the folder on 
 
 Tap **Start today’s routine** and put the phone face-up on a table. For each exercise:
 
-1. **Next up** card (8 s): the name and cue are read aloud. Tap *Start now* to skip ahead.
-2. **Get ready** (3 s), with the side called out ("Left side").
-3. **Hold**: a big countdown ring; "Hold… 3, 2, 1" then a tone and "Relax". Long holds also get a "10 seconds" call.
-4. **Rest** (3 s between reps, 10 s between sets and when switching sides), then the next rep.
+1. **Next up** card (8 s): the voice announces the exercise name only ("Next: Side bends"). The description stays on screen. Tap *Start now* to skip ahead.
+2. **Get ready** (3 s). For each-side exercises the voice says which side to start on.
+3. **Hold**: a big countdown ring. A soft low tone starts the hold, quiet ticks mark the last 3 seconds, and a gentle two-note tone ends it. No spoken countdown.
+4. **Rest** (3 s between reps, 10 s between sets and when switching sides), then the next rep. Side switches are announced ("Switch to right side"); alternating exercises just say "Left" or "Right".
 
 Moving reps with no hold (wall angels) are either auto-paced (one every 4 s, counted aloud) or tap-to-count with a big +1 button. Choose in Routine.
 

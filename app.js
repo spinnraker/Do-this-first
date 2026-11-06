@@ -255,7 +255,7 @@
         const g = this.ctx.createGain();
         o.frequency.value = freq;
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.25, t + 0.01);
+        g.gain.exponentialRampToValueAtTime(this.vol, t + 0.02);
         g.gain.exponentialRampToValueAtTime(0.0001, t + ms / 1000);
         o.connect(g).connect(this.ctx.destination);
         o.start(t);
@@ -263,10 +263,12 @@
       } catch (e) { /* ignore */ }
     },
     buzz(p) { if (this.tones && navigator.vibrate) navigator.vibrate(p); },
-    start() { this.beep(880, 220); this.buzz(60); },
-    release() { this.beep(660, 120); this.beep(990, 200, 0.13); this.buzz([30, 60, 30]); },
-    tick() { this.beep(700, 70); this.buzz(10); },
-    tap() { this.beep(520, 60); this.buzz(8); },
+    // Soft, low sine tones: a cue, not an alarm.
+    vol: 0.12,
+    start() { this.beep(523, 260); this.buzz(30); },                       // hold begins
+    release() { this.beep(659, 180); this.beep(523, 320, 0.2); this.buzz(20); }, // hold ends: gentle falling pair
+    tick() { this.beep(440, 90); },                                        // last 3 seconds of a hold
+    tap() { this.beep(392, 90); this.buzz(8); },
   };
 
   let wakeLock = null;
@@ -360,22 +362,23 @@
     switch (step.kind) {
       case 'intro':
         Cues.tap();
-        Cues.say(`${step.label}: ${ex.name}. ${ex.cue}`, true);
+        Cues.say(`${step.ex === 0 ? 'First' : 'Next'}: ${ex.name}.`, true);
         break;
       case 'ready':
-        Cues.say(step.side ? `${sideWord(step.side)} side. Get ready.` : 'Get ready.');
+        // First side only; the switch is already announced.
+        if (step.side && ex.sides === 'each' && R.steps[i - 1].kind === 'intro') Cues.say(`${sideWord(step.side)} side.`);
         break;
       case 'hold':
         Cues.start();
-        Cues.say(ex.sides === 'alternating' && step.side ? `${sideWord(step.side)}. Hold.` : 'Hold.');
+        if (ex.sides === 'alternating' && step.side) Cues.say(sideWord(step.side));
         break;
       case 'rest':
-        if (step.label === 'Switch sides') Cues.say(`Switch sides. ${sideWord(step.side)} side next.`);
+        if (step.label === 'Switch sides') Cues.say(`Switch to ${sideWord(step.side).toLowerCase()} side.`);
         break;
       case 'move':
         if (step.duration != null) {
           Cues.tap();
-          Cues.say(step.side ? `${step.rep}, ${sideWord(step.side)}` : String(step.rep));
+          if (step.side) Cues.say(sideWord(step.side));
         }
         break;
     }
@@ -390,7 +393,6 @@
     if (natural && step.isRep) R.done.add(R.index);
     if (natural && step.kind === 'hold') {
       Cues.release();
-      Cues.say('Relax.');
     }
     // Chain from the scheduled end so timing doesn't drift, unless we're well behind.
     let startAt = now;
@@ -412,10 +414,7 @@
     const left = Math.ceil(remaining / 1000);
     const once = (key, fn) => { if (!R.spoken.has(key)) { R.spoken.add(key); fn(); } };
     if (step.kind === 'hold') {
-      if (step.duration >= 20 && left === 10) once('10', () => Cues.say('10 seconds.'));
-      if (step.duration >= 5 && left >= 1 && left <= 3) once(`c${left}`, () => { Cues.tick(); Cues.say(String(left)); });
-    } else if (step.kind === 'rest' && step.duration >= 6 && left === 3) {
-      once('gr', () => Cues.say('Get ready.'));
+      if (step.duration >= 5 && left >= 1 && left <= 3) once(`c${left}`, () => Cues.tick());
     }
     if (remaining <= 0) completeStep(true);
     else updateClock(remaining, step.duration * 1000);
@@ -474,7 +473,6 @@
     if (!step || R.finished || step.kind !== 'move' || step.duration != null) return;
     unpauseForJump();
     Cues.tap();
-    Cues.say(String(step.rep), true);
     completeStep(true);
   }
 
@@ -498,7 +496,7 @@
     save();
     if (status === 'completed') {
       Cues.release();
-      Cues.say('Routine complete. Nice work.', true);
+      Cues.say('All done.', true);
     } else {
       Cues.stop();
     }
@@ -838,9 +836,9 @@
       <button class="link" data-action="new">+ Add exercise</button>`;
 
     html += `<h2 class="section-label">During a session</h2><div class="rules" style="margin-top:10px">
-      ${onOff('voice', 'Voice cues', '“Hold… 3, 2, 1, relax”')}
+      ${onOff('voice', 'Voice', 'Announces each exercise and side')}
       ${s.voice ? `<button class="row-btn" data-action="voices"><b>Voice</b><span>${esc(s.voiceName ? s.voiceName : 'Phone default')} ›</span></button>` : ''}
-      ${onOff('tones', 'Tones', 'Beeps on hold and relax')}
+      ${onOff('tones', 'Tones', 'Soft beeps start and end each hold')}
       </div>
       ${s.voice ? `<div class="field" style="margin-top:20px"><span>Speaking speed</span>
         <div class="seg">${RATES.map(([r, l]) => `<button data-action="rate" data-rate="${r}" aria-pressed="${Math.abs(s.voiceRate - r) < 0.01}">${l}</button>`).join('')}</div>
@@ -1204,14 +1202,14 @@
         s.voiceName = el.dataset.name;
         save();
         Cues.unlock(s);
-        Cues.say('Hold. 3, 2, 1. Relax.', true);
+        Cues.say('Next: Chin tucks.', true);
         renderSheet();
         break;
       case 'rate':
         s.voiceRate = Number(el.dataset.rate);
         save();
         Cues.unlock(s);
-        Cues.say('Hold. 3, 2, 1. Relax.', true);
+        Cues.say('Next: Chin tucks.', true);
         render();
         break;
       case 'pace':
