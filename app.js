@@ -581,6 +581,7 @@
       <div class="s-bar" aria-hidden="true"><i style="width:${overall}%"></i></div>
       <h1 class="s-name">${esc(ex.name)}</h1>
       <p class="s-cue">${esc(ex.cue)}</p>
+      ${ex.video ? '<button class="s-video" data-run="video">▶ Watch video</button>' : ''}
       <div class="s-stage">
         ${stage}
         ${repLine}
@@ -616,6 +617,10 @@
       case 'skip': skipExercise(); break;
       case 'tap': tapRep(); break;
       case 'now': startNow(); break;
+      case 'video':
+        pause();
+        openSheet({ type: 'video', ex: { ...state.active.snapshot[R.steps[R.index].ex] } });
+        break;
       case 'flags':
         pause();
         openSheet({ type: 'flags' });
@@ -709,6 +714,7 @@
             <button class="habit-name" data-action="edit" data-id="${esc(e.id)}">${esc(e.name)}</button>
             <div class="habit-sub">${esc(E.describe(e))}</div>
           </div>
+          ${e.video ? `<button class="play-btn" data-action="video" data-id="${esc(e.id)}" aria-label="Watch video: ${esc(e.name)}">${ICON.play}</button>` : ''}
         </div>`).join('')}</div>
       <button class="link" data-action="flags" style="margin-top:12px">Warning signs · when to stop and get seen</button>`;
   }
@@ -925,6 +931,7 @@
       edit: editSheet,
       checkin: checkinSheet,
       session: sessionSheet,
+      video: videoSheet,
       voices: voicesSheet,
     }[sheet.type]();
     sheetEl.innerHTML = `<div class="sheet-inner">${html}</div>`;
@@ -956,6 +963,24 @@
       <p class="lead" style="margin-top:20px">Sharp pain, or tingling and numbness that get worse during an exercise: stop that exercise.</p>`;
   }
 
+  // --- video ---
+
+  function videoSheet() {
+    const ex = sheet.ex;
+    const player = navigator.onLine === false
+      ? '<div class="video off"><p>You’re offline. Videos need an internet connection.</p></div>'
+      : `<div class="video"><iframe src="https://www.youtube-nocookie.com/embed/${ex.video}?playsinline=1&rel=0&modestbranding=1"
+          title="${esc(ex.name)} video" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen
+          referrerpolicy="strict-origin-when-cross-origin"></iframe></div>`;
+    return `<div class="sheet-top"><span></span><button class="done" data-action="close">${R ? 'Back to session' : 'Done'}</button></div>
+      <div class="date" style="margin-top:20px">${/^Dr\. Jo/.test(ex.cue) || E.SEED.some((s) => s.video === ex.video) ? 'Ask Doctor Jo · YouTube' : 'YouTube'}</div>
+      <h1 id="sheet-title" tabindex="-1">${esc(ex.name)}</h1>
+      ${player}
+      <p class="lead">${esc(ex.cue)}</p>
+      ${E.SEED.some((s) => s.video === ex.video && s.id !== ex.id) ? '<p class="hint">This video covers several exercises; scrub to the one you need.</p>' : ''}
+      <a class="link" href="https://youtu.be/${ex.video}" target="_blank" rel="noopener" style="display:inline-block">Open in YouTube</a>`;
+  }
+
   // --- voice picker ---
 
   function voicesSheet() {
@@ -979,9 +1004,11 @@
   // --- edit exercise ---
 
   function editDraft(e) {
-    return e ? { ...e } : {
-      id: null, name: '', cue: '', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none', enabled: true,
+    const d = e ? { ...e } : {
+      id: null, name: '', cue: '', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none', enabled: true, video: '',
     };
+    d.videoUrl = d.video ? `https://youtu.be/${d.video}` : '';
+    return d;
   }
 
   function stepper(field, value, label, min, max) {
@@ -1004,6 +1031,8 @@
       <h1 id="sheet-title" tabindex="-1" class="detail-name">${sheet.id ? 'Edit exercise' : 'New exercise'}</h1>
       <label class="field"><span>Name</span><input type="text" data-ed="name" value="${esc(d.name)}" placeholder="Chin tucks" maxlength="60" autocomplete="off"></label>
       <label class="field"><span>Cue</span><textarea class="line" rows="1" data-ed="cue" placeholder="What to focus on" maxlength="200">${esc(d.cue)}</textarea></label>
+      <label class="field"><span>Video</span><input type="url" data-ed="videoUrl" value="${esc(d.videoUrl)}" placeholder="Paste a YouTube link" autocomplete="off" inputmode="url"></label>
+      <button class="link" data-action="video-preview" style="padding-bottom:0" ${E.videoId(d.videoUrl) ? '' : 'hidden'}>▶ Watch</button>
       <div class="field"><span>Type</span>${seg('ed-type', 'type', [['hold-reps', 'Hold reps'], ['hold-sets', 'Hold sets'], ['reps', 'Reps']])}</div>
       <div class="field"><span>Sides</span>${seg('ed-sides', 'sides', [['none', 'None'], ['alternating', 'Alternate'], ['each', 'Each side']])}</div>
       <div class="field"><span>${unit}${d.sides !== 'none' ? ' per side' : ''}</span>${stepper('reps', d.reps, unit.toLowerCase(), 1, 50)}</div>
@@ -1018,7 +1047,11 @@
   function saveExercise() {
     const d = sheet.draft;
     if (!d.name.trim()) return;
-    const clean = E.cleanExercise({ ...d, name: d.name.trim(), cue: d.cue.trim() }, 0);
+    const url = (d.videoUrl || '').trim();
+    const video = E.videoId(url);
+    if (url && !video) { toast('That isn’t a YouTube link'); return; }
+    const { videoUrl, ...rest } = d;
+    const clean = E.cleanExercise({ ...rest, name: d.name.trim(), cue: d.cue.trim(), video }, 0);
     if (sheet.id) {
       const i = state.exercises.findIndex((e) => e.id === sheet.id);
       if (i !== -1) state.exercises[i] = { ...clean, id: sheet.id, order: state.exercises[i].order };
@@ -1195,6 +1228,17 @@
         save();
         render();
         break;
+      case 'video': {
+        const e = state.exercises.find((x) => x.id === id);
+        if (e && e.video) openSheet({ type: 'video', ex: { ...e } });
+        break;
+      }
+      case 'video-preview': {
+        const d = sheet.draft;
+        const back = sheet;
+        openSheet({ type: 'video', ex: { name: d.name || 'Video', cue: d.cue, video: E.videoId(d.videoUrl) }, back });
+        break;
+      }
       case 'voices':
         openSheet({ type: 'voices' });
         break;
@@ -1339,7 +1383,7 @@
       openSheet({ type: 'flags', back });
       return;
     }
-    if (el.dataset.action === 'close' && sheet && sheet.type === 'flags' && sheet.back) {
+    if (el.dataset.action === 'close' && sheet && (sheet.type === 'flags' || sheet.type === 'video') && sheet.back) {
       openSheet(sheet.back);
       return;
     }
@@ -1352,6 +1396,9 @@
     if (t.dataset.ed) {
       if (t.classList.contains('line')) fit(t);
       sheet.draft[t.dataset.ed] = t.value;
+      // Show the Watch button as soon as the link is a real YouTube link.
+      const watch = t.dataset.ed === 'videoUrl' && sheetEl.querySelector('[data-action="video-preview"]');
+      if (watch) watch.hidden = !E.videoId(t.value);
       const btn = sheetEl.querySelector('[data-action="save"]');
       if (btn) btn.disabled = !sheet.draft.name || !sheet.draft.name.trim();
     }
@@ -1392,7 +1439,7 @@
   document.addEventListener('keydown', (ev) => {
     if (ev.key !== 'Escape') return;
     if (sheet && !(sheet.type === 'disclaimer' && sheet.first)) {
-      if (sheet.type === 'flags' && sheet.back) openSheet(sheet.back);
+      if ((sheet.type === 'flags' || sheet.type === 'video') && sheet.back) openSheet(sheet.back);
       else closeSheet();
     } else if (R) {
       if (R.pausedAt == null) pause(); else resume();

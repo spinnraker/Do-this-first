@@ -59,32 +59,50 @@
   // `since`: the seed version that added it. Existing users get newer exercises
   // added once (see addNewSeeds), placed after `after` ('^' = first, null = last).
   // Exercises marked "Dr. Jo" follow Ask Doctor Jo (askdoctorjo.com).
-  const SEED_VERSION = 2;
+  // v2: Dr. Jo exercises. v3: Dr. Jo YouTube videos (`video` = YouTube video ID).
+  const SEED_VERSION = 3;
   const SEED_DEFS = [
-    { id: 'shoulder-circles', since: 2, after: '^', name: 'Shoulder circles', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+    { id: 'shoulder-circles', video: '0fFDAYjRRck', since: 2, after: '^', name: 'Shoulder circles', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
       cue: 'Warm-up from Dr. Jo. Roll both shoulders up, back and down in slow, easy circles.', enabled: true },
-    { id: 'chin-tucks', since: 1, name: 'Chin tucks', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+    { id: 'chin-tucks', video: '0fFDAYjRRck', since: 1, name: 'Chin tucks', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
       cue: 'Glide head straight back, make a double chin. Don’t tip up or down.', enabled: true },
-    { id: 'scap-squeezes', since: 1, name: 'Scapular squeezes', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+    { id: 'scap-squeezes', video: '0fFDAYjRRck', since: 1, name: 'Scapular squeezes', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
       cue: 'Shoulder blades back and down, into your back pockets.', enabled: true },
-    { id: 'neck-rotations', since: 1, name: 'Neck rotations', type: 'reps', reps: 10, holdSeconds: 2, restSeconds: 3, sideRestSeconds: 10, sides: 'alternating',
+    { id: 'neck-rotations', video: '0fFDAYjRRck', since: 1, name: 'Neck rotations', type: 'reps', reps: 10, holdSeconds: 2, restSeconds: 3, sideRestSeconds: 10, sides: 'alternating',
       cue: 'Turn slowly to look over your shoulder. Mild stretch only.', enabled: true },
-    { id: 'side-bends', since: 1, name: 'Side bends', type: 'hold-sets', reps: 3, holdSeconds: 20, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
+    { id: 'side-bends', video: '0fFDAYjRRck', since: 1, name: 'Side bends', type: 'hold-sets', reps: 3, holdSeconds: 20, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
       cue: 'Ear toward shoulder; keep shoulder down.', enabled: true },
-    { id: 'upper-trap', since: 1, name: 'Upper trap stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
+    { id: 'upper-trap', video: '0fFDAYjRRck', since: 1, name: 'Upper trap stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
       cue: 'Sit on one hand, tilt head away, gently assist with other hand.', enabled: true },
-    { id: 'levator-scap', since: 2, after: 'upper-trap', name: 'Levator scapulae stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
+    { id: 'levator-scap', video: '0fFDAYjRRck', since: 2, after: 'upper-trap', name: 'Levator scapulae stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
       cue: 'Dr. Jo: hand on the stretching side up and behind that shoulder, other hand on top of and slightly behind your head. Look down toward the opposite knee and pull gently.', enabled: true },
     { id: 'doorway-pec', since: 1, name: 'Doorway pec stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'none',
       cue: 'Forearms on frame at shoulder height, step through.', enabled: true },
     { id: 'wall-angels', since: 1, name: 'Wall angels', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
       cue: 'Back against wall, goalpost arms, slide up and down keeping contact.', enabled: true },
-    { id: 'neck-isometrics', since: 2, after: null, name: 'Neck isometrics', type: 'hold-reps', reps: 8, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+    { id: 'neck-isometrics', video: 'Rvv8pOEADYo', since: 2, after: null, name: 'Neck isometrics', type: 'hold-reps', reps: 8, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
       cue: 'Dr. Jo: press your head gently into your hand without moving it. Change direction each rep: forehead, back of head, left, right.', enabled: false },
-    { id: 'nerve-glide', since: 2, after: null, name: 'Nerve glide', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+    { id: 'nerve-glide', video: 'gZUNcfcdHW4', since: 2, after: null, name: 'Nerve glide', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
       cue: 'Ask your PT first. Dr. Jo: tingling arm out to the side, elbow bent 90°, palm toward your head. Lower the hand as you tilt your head toward it, then both come back up. Once a day, no more than 10.', enabled: false },
   ];
   const strip = ({ since, after, ...e }) => e;
+
+  /** Give built-in exercises their video if they don't have one (never overwrites yours). */
+  function addSeedVideos(exercises) {
+    for (const e of exercises) {
+      const def = SEED_DEFS.find((d) => d.id === e.id);
+      if (def && def.video && !e.video) e.video = def.video;
+    }
+    return exercises;
+  }
+
+  /** YouTube video ID from a link or a bare ID; '' if it isn't one. */
+  function videoId(input) {
+    const s = String(input == null ? '' : input).trim();
+    if (/^[A-Za-z0-9_-]{11}$/.test(s)) return s;
+    const m = /(?:youtube(?:-nocookie)?\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/)|youtu\.be\/)([A-Za-z0-9_-]{11})/.exec(s);
+    return m ? m[1] : '';
+  }
   const SEED = SEED_DEFS.map((e, i) => ({ ...strip(e), order: i }));
 
   /** Add exercises introduced after `fromVersion` that this routine doesn't have yet. */
@@ -139,6 +157,7 @@
       sideRestSeconds: int(e.sideRestSeconds, 0, 600, 10),
       sides: SIDES.includes(e.sides) ? e.sides : 'none',
       cue: str(e.cue),
+      video: videoId(e.video),
       enabled: e.enabled !== false,
       order: int(e.order, 0, 10000, i),
     };
@@ -155,6 +174,7 @@
     exercises.sort((a, b) => a.order - b.order).forEach((e, i) => (e.order = i));
     const seedVersion = int(raw.seedVersion, 1, 1000, 1);
     if (Array.isArray(raw.exercises) && seedVersion < SEED_VERSION) exercises = addNewSeeds(exercises, seedVersion);
+    if (Array.isArray(raw.exercises) && seedVersion < 3) addSeedVideos(exercises);
     const s = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
     const times = Array.isArray(s.reminderTimes) ? s.reminderTimes.filter((t) => /^\d{2}:\d{2}$/.test(t)).slice(0, 2) : [];
     const settings = {
@@ -421,6 +441,6 @@
     SEED, SEED_VERSION, addNewSeeds, defaultSettings, freshState, normalize, cleanExercise,
     INTRO_SECONDS, READY_SECONDS, unit, describe, buildPlan, repTargets, repsDone, nextExerciseStart, backTarget, estimateSeconds, summarize,
     doneDays, streak, programWeek, painSeries, skipCounts,
-    toCsv, toIcs,
+    toCsv, toIcs, videoId,
   };
 });

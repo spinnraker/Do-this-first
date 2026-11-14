@@ -189,3 +189,32 @@ test('voice settings are validated', () => {
   assert.equal(bad.voiceName, '');
   assert.equal(bad.voiceRate, 0.95);
 });
+
+test('YouTube links of every common shape give the video ID', () => {
+  const id = 'gZUNcfcdHW4';
+  for (const url of [id, `https://youtu.be/${id}`, `https://www.youtube.com/watch?v=${id}`, `https://youtube.com/watch?feature=share&v=${id}`,
+    `https://www.youtube.com/embed/${id}`, `https://www.youtube.com/shorts/${id}`, `https://m.youtube.com/watch?v=${id}&t=30s`]) {
+    assert.equal(E.videoId(url), id, url);
+  }
+  assert.equal(E.videoId('https://example.com/watch?v=gZUNcfcdHW4x'), '');
+  assert.equal(E.videoId('not a link'), '');
+  assert.equal(E.videoId(''), '');
+});
+
+test('existing routines get Dr. Jo videos once, without overwriting your own', () => {
+  const { state } = E.normalize({
+    seedVersion: 2,
+    exercises: [
+      { id: 'chin-tucks', name: 'Chin tucks', order: 0 },
+      { id: 'upper-trap', name: 'Upper trap stretch', video: 'AAAAAAAAAAA', order: 1 },
+      { id: 'doorway-pec', name: 'Doorway pec stretch', order: 2 },
+    ],
+  }, '2026-11-14');
+  const v = Object.fromEntries(state.exercises.map((e) => [e.id, e.video]));
+  assert.equal(v['chin-tucks'], '0fFDAYjRRck');
+  assert.equal(v['upper-trap'], 'AAAAAAAAAAA');
+  assert.equal(v['doorway-pec'], '');
+  // Removing a video later sticks.
+  const cleared = { ...state, exercises: state.exercises.map((e) => ({ ...e, video: '' })) };
+  assert.equal(E.normalize(cleared, '2026-11-14').state.exercises[0].video, '');
+});

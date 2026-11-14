@@ -1,5 +1,5 @@
 // Offline support: serve the app shell from cache, refresh it in the background.
-const CACHE = 'neckpt-v7';
+const CACHE = 'neckpt-v8';
 const FILES = [
   './',
   'index.html',
