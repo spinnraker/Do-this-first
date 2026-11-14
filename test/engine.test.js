@@ -14,13 +14,33 @@ test('date helpers are calendar-based', () => {
   assert.equal(E.weekStart('2026-11-08'), '2026-11-02');
 });
 
-test('seed routine matches the spec', () => {
-  assert.equal(E.SEED.length, 7);
+test('seed routine: original 7 plus Dr. Jo additions, risky ones off', () => {
   assert.deepEqual(E.SEED.map((e) => e.name), [
-    'Chin tucks', 'Scapular squeezes', 'Neck rotations', 'Side bends', 'Upper trap stretch', 'Doorway pec stretch', 'Wall angels',
+    'Shoulder circles', 'Chin tucks', 'Scapular squeezes', 'Neck rotations', 'Side bends', 'Upper trap stretch',
+    'Levator scapulae stretch', 'Doorway pec stretch', 'Wall angels', 'Neck isometrics', 'Nerve glide',
   ]);
+  assert.deepEqual(E.SEED.filter((e) => !e.enabled).map((e) => e.id), ['neck-isometrics', 'nerve-glide']);
   assert.equal(byId('upper-trap').holdSeconds, 30);
   assert.equal(byId('neck-rotations').sides, 'alternating');
+  assert.equal(byId('nerve-glide').reps, 10); // Dr. Jo: once a day, about 10
+});
+
+test('existing routines get new exercises once, in place, keeping edits', () => {
+  const old = {
+    exercises: [
+      { id: 'chin-tucks', name: 'Chin tucks', reps: 6, order: 0 },
+      { id: 'upper-trap', name: 'Upper trap stretch', type: 'hold-sets', order: 1 },
+      { id: 'mine', name: 'My own', order: 2 },
+    ],
+  };
+  const { state } = E.normalize(old, '2026-11-14');
+  assert.deepEqual(state.exercises.map((e) => e.id),
+    ['shoulder-circles', 'chin-tucks', 'upper-trap', 'levator-scap', 'mine', 'neck-isometrics', 'nerve-glide']);
+  assert.equal(state.exercises[1].reps, 6);
+  assert.equal(state.seedVersion, E.SEED_VERSION);
+  // Deleting one later doesn't bring it back.
+  const after = { ...state, exercises: state.exercises.filter((e) => e.id !== 'levator-scap') };
+  assert.ok(!E.normalize(after, '2026-11-14').state.exercises.some((e) => e.id === 'levator-scap'));
 });
 
 test('hold reps: intro, get ready, then hold/rest pairs with no trailing rest', () => {
@@ -71,7 +91,7 @@ test('skip jumps to the next exercise intro', () => {
   const i = E.nextExerciseStart(steps, 0);
   assert.equal(steps[i].kind, 'intro');
   assert.equal(steps[i].ex, 1);
-  assert.equal(E.nextExerciseStart(steps, 6), steps.length);
+  assert.equal(E.nextExerciseStart(steps, E.SEED.length - 1), steps.length);
 });
 
 test('summarize scores reps and marks skipped / not reached', () => {
@@ -87,8 +107,8 @@ test('summarize scores reps and marks skipped / not reached', () => {
 });
 
 test('full routine estimate is in the 15-20 minute range', () => {
-  const min = E.estimateSeconds(E.buildPlan(E.SEED, AUTO)) / 60;
-  assert.ok(min > 12 && min < 22, `got ${min}`);
+  const min = E.estimateSeconds(E.buildPlan(E.SEED.filter((e) => e.enabled), AUTO)) / 60;
+  assert.ok(min > 15 && min < 26, `got ${min}`);
 });
 
 test('streak counts back from today, or from yesterday if today is not done', () => {
@@ -115,6 +135,7 @@ test('editing an exercise does not change a stored session snapshot', () => {
 
 test('normalize repairs bad data and counts what it drops', () => {
   const { state, dropped } = E.normalize({
+    seedVersion: E.SEED_VERSION,
     exercises: [{ name: 'X', reps: 'lots', type: 'nope' }, { nope: true }],
     settings: { paceMode: 'tap', reminderTimes: ['25:99x', '07:30'] },
     sessions: [{ date: 'bad' }],

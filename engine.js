@@ -56,22 +56,49 @@
 
   // ---------- seed data ----------
 
-  const SEED = [
-    { id: 'chin-tucks', name: 'Chin tucks', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
-      cue: 'Glide head straight back, make a double chin. Don’t tip up or down.' },
-    { id: 'scap-squeezes', name: 'Scapular squeezes', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
-      cue: 'Shoulder blades back and down, into your back pockets.' },
-    { id: 'neck-rotations', name: 'Neck rotations', type: 'reps', reps: 10, holdSeconds: 2, restSeconds: 3, sideRestSeconds: 10, sides: 'alternating',
-      cue: 'Turn slowly to look over your shoulder. Mild stretch only.' },
-    { id: 'side-bends', name: 'Side bends', type: 'hold-sets', reps: 3, holdSeconds: 20, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
-      cue: 'Ear toward shoulder; keep shoulder down.' },
-    { id: 'upper-trap', name: 'Upper trap stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
-      cue: 'Sit on one hand, tilt head away, gently assist with other hand.' },
-    { id: 'doorway-pec', name: 'Doorway pec stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'none',
-      cue: 'Forearms on frame at shoulder height, step through.' },
-    { id: 'wall-angels', name: 'Wall angels', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
-      cue: 'Back against wall, goalpost arms, slide up and down keeping contact.' },
-  ].map((e, i) => ({ ...e, enabled: true, order: i }));
+  // `since`: the seed version that added it. Existing users get newer exercises
+  // added once (see addNewSeeds), placed after `after` ('^' = first, null = last).
+  // Exercises marked "Dr. Jo" follow Ask Doctor Jo (askdoctorjo.com).
+  const SEED_VERSION = 2;
+  const SEED_DEFS = [
+    { id: 'shoulder-circles', since: 2, after: '^', name: 'Shoulder circles', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+      cue: 'Warm-up from Dr. Jo. Roll both shoulders up, back and down in slow, easy circles.', enabled: true },
+    { id: 'chin-tucks', since: 1, name: 'Chin tucks', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+      cue: 'Glide head straight back, make a double chin. Don’t tip up or down.', enabled: true },
+    { id: 'scap-squeezes', since: 1, name: 'Scapular squeezes', type: 'hold-reps', reps: 10, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+      cue: 'Shoulder blades back and down, into your back pockets.', enabled: true },
+    { id: 'neck-rotations', since: 1, name: 'Neck rotations', type: 'reps', reps: 10, holdSeconds: 2, restSeconds: 3, sideRestSeconds: 10, sides: 'alternating',
+      cue: 'Turn slowly to look over your shoulder. Mild stretch only.', enabled: true },
+    { id: 'side-bends', since: 1, name: 'Side bends', type: 'hold-sets', reps: 3, holdSeconds: 20, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
+      cue: 'Ear toward shoulder; keep shoulder down.', enabled: true },
+    { id: 'upper-trap', since: 1, name: 'Upper trap stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
+      cue: 'Sit on one hand, tilt head away, gently assist with other hand.', enabled: true },
+    { id: 'levator-scap', since: 2, after: 'upper-trap', name: 'Levator scapulae stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'each',
+      cue: 'Dr. Jo: hand on the stretching side up and behind that shoulder, other hand on top of and slightly behind your head. Look down toward the opposite knee and pull gently.', enabled: true },
+    { id: 'doorway-pec', since: 1, name: 'Doorway pec stretch', type: 'hold-sets', reps: 3, holdSeconds: 30, restSeconds: 10, sideRestSeconds: 10, sides: 'none',
+      cue: 'Forearms on frame at shoulder height, step through.', enabled: true },
+    { id: 'wall-angels', since: 1, name: 'Wall angels', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+      cue: 'Back against wall, goalpost arms, slide up and down keeping contact.', enabled: true },
+    { id: 'neck-isometrics', since: 2, after: null, name: 'Neck isometrics', type: 'hold-reps', reps: 8, holdSeconds: 5, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+      cue: 'Dr. Jo: press your head gently into your hand without moving it. Change direction each rep: forehead, back of head, left, right.', enabled: false },
+    { id: 'nerve-glide', since: 2, after: null, name: 'Nerve glide', type: 'reps', reps: 10, holdSeconds: 0, restSeconds: 3, sideRestSeconds: 10, sides: 'none',
+      cue: 'Ask your PT first. Dr. Jo: tingling arm out to the side, elbow bent 90°, palm toward your head. Lower the hand as you tilt your head toward it, then both come back up. Once a day, no more than 10.', enabled: false },
+  ];
+  const strip = ({ since, after, ...e }) => e;
+  const SEED = SEED_DEFS.map((e, i) => ({ ...strip(e), order: i }));
+
+  /** Add exercises introduced after `fromVersion` that this routine doesn't have yet. */
+  function addNewSeeds(exercises, fromVersion) {
+    const list = exercises.slice().sort((a, b) => a.order - b.order);
+    for (const def of SEED_DEFS) {
+      if (def.since <= fromVersion || list.some((e) => e.id === def.id)) continue;
+      const anchor = list.findIndex((e) => e.id === def.after);
+      const at = def.after === '^' ? 0 : anchor === -1 ? list.length : anchor + 1;
+      list.splice(at, 0, strip(def));
+    }
+    list.forEach((e, i) => (e.order = i));
+    return list;
+  }
 
   function defaultSettings(today) {
     return {
@@ -89,7 +116,7 @@
   }
 
   function freshState(today) {
-    return { exercises: SEED.map((e) => ({ ...e })), settings: defaultSettings(today), sessions: [], active: null };
+    return { seedVersion: SEED_VERSION, exercises: SEED.map((e) => ({ ...e })), settings: defaultSettings(today), sessions: [], active: null };
   }
 
   // ---------- validation ----------
@@ -122,10 +149,12 @@
     const base = freshState(today);
     if (!raw || typeof raw !== 'object') return { state: base, dropped: 1 };
     let dropped = 0;
-    const exercises = Array.isArray(raw.exercises)
+    let exercises = Array.isArray(raw.exercises)
       ? raw.exercises.map((e, i) => cleanExercise(e, i) || (dropped++, null)).filter(Boolean)
       : base.exercises;
     exercises.sort((a, b) => a.order - b.order).forEach((e, i) => (e.order = i));
+    const seedVersion = int(raw.seedVersion, 1, 1000, 1);
+    if (Array.isArray(raw.exercises) && seedVersion < SEED_VERSION) exercises = addNewSeeds(exercises, seedVersion);
     const s = raw.settings && typeof raw.settings === 'object' ? raw.settings : {};
     const times = Array.isArray(s.reminderTimes) ? s.reminderTimes.filter((t) => /^\d{2}:\d{2}$/.test(t)).slice(0, 2) : [];
     const settings = {
@@ -175,7 +204,7 @@
         activeMs: Math.max(0, Number(a.activeMs) || 0),
       };
     }
-    return { state: { exercises, settings, sessions, active }, dropped };
+    return { state: { seedVersion: Math.max(seedVersion, SEED_VERSION), exercises, settings, sessions, active }, dropped };
   }
 
   // ---------- plan ----------
@@ -389,7 +418,7 @@
 
   return {
     toKey, fromKey, addDays, diffDays, weekday, weekStart, weekOf,
-    SEED, defaultSettings, freshState, normalize, cleanExercise,
+    SEED, SEED_VERSION, addNewSeeds, defaultSettings, freshState, normalize, cleanExercise,
     INTRO_SECONDS, READY_SECONDS, unit, describe, buildPlan, repTargets, repsDone, nextExerciseStart, backTarget, estimateSeconds, summarize,
     doneDays, streak, programWeek, painSeries, skipCounts,
     toCsv, toIcs,

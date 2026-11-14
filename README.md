@@ -41,6 +41,7 @@ Built as a home-screen web app like Habito instead of Expo, so:
 ## How it works
 
 - `engine.js` is pure logic with tests. It compiles the enabled exercises into a flat list of timed steps (intro → ready → hold → rest …). The app walks that list using wall-clock time, so pausing, going back a rep and resuming after a reload stay accurate.
+- Exercises marked "Dr. Jo" follow Ask Doctor Jo (askdoctorjo.com): shoulder circles and the levator scapulae stretch from her cervical spondylosis routine, plus neck isometrics and a nerve glide (both off by default; check with your PT). New exercises are added once to existing routines without changing your edits.
 - Each session stores a snapshot of the exercises as they were when it started. Editing the routine only changes future sessions.
 - `app.js` handles the UI and saves to `localStorage` (`neckpt:v1`). Saved and imported data is checked when it loads. Anything that can't be read is kept under a `neckpt:v1:unreadable:*` key instead of being overwritten.
 - `sw.js` caches the app for offline use. Bump `CACHE` when you ship changes.
